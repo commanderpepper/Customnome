@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Customnome"
 include(":app")
- 
+include(":feature-metronome")
