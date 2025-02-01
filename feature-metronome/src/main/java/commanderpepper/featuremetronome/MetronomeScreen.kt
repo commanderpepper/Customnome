@@ -1,30 +1,72 @@
 package commanderpepper.featuremetronome
 
+import android.content.ContentResolver
+import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.time.delay
+import java.time.Duration
 import kotlin.math.roundToInt
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), viewModel: MetronomeViewModel = viewModel()){
+fun MetronomeScreen(
+    modifier: Modifier = Modifier.fillMaxSize(),
+    viewModel: MetronomeViewModel = viewModel(),
+    audioFileId: Int
+){
+
+    val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsState()
-    MetronomeScreen(modifier = modifier, uiState = uiState.value.metronomeUIState) { slider ->
+    val playerState = viewModel.playerState.collectAsState()
+    val bmp = viewModel.bpm.collectAsState()
+
+    LaunchedEffect(Unit) {
+        val uri = Uri.Builder().scheme(ContentResolver.SCHEME_ANDROID_RESOURCE).path(audioFileId.toString()).build()
+        if(uri != null){
+            viewModel.initializePlayer(context, uri)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.savePlayerState()
+            viewModel.releasePlayer()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (true){
+            delay(Duration.ofMillis(bmp.value.toLong()))
+            playerState.value?.seekTo(0)
+            playerState.value?.play()
+        }
+    }
+
+    MetronomeScreen(modifier = modifier, uiState = uiState.value.metronomeUIState, player = playerState.value) { slider ->
         viewModel.updateBPM(slider)
     }
 }
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: MetronomeUIState, onValueChange: (Float) -> Unit) {
+fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: MetronomeUIState, player: ExoPlayer?, onValueChange: (Float) -> Unit) {
     Column(modifier = modifier) {
         Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = uiState.beatsPerMinute, fontSize = 24.sp)
         Slider(modifier = Modifier
@@ -37,13 +79,32 @@ fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: Metron
                 onValueChange(it.roundToInt().toFloat())
             }
         )
+        PlayerControls(player)
+    }
+}
+
+@Composable
+fun PlayerControls(player: ExoPlayer?) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Button(onClick = { player?.playWhenReady = true }) {
+            Text("Play")
+        }
+        Button(onClick = { player?.playWhenReady = false }) {
+            Text("Pause")
+        }
     }
 }
 
 @Preview
 @Composable
 fun MetronomeScreenPreview(){
-    MetronomeScreen(uiState = MetronomeUIState("100 bpm", 100f)) {  }
+    MetronomeScreen(uiState = MetronomeUIState("100 bpm", 100f), player = null) {  }
 }
 
 data class MetronomeUIState(val beatsPerMinute: String, val value: Float)

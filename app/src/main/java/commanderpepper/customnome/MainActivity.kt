@@ -9,9 +9,9 @@ import commanderpepper.featuremetronome.MetronomeScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
+      setContent {
             CustomnomeTheme {
-                MetronomeScreen()
+                MetronomeScreen(audioFileId = R.raw.metronome_sound)
             }
         }
     }
