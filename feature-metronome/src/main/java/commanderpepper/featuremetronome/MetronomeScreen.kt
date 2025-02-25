@@ -37,6 +37,7 @@ fun MetronomeScreen(
     val uiState = viewModel.uiState.collectAsState()
     val playerState = viewModel.playerState.collectAsState()
     val bmp = viewModel.bpm.collectAsState()
+    val isPlaying = viewModel.isPlaying.collectAsState()
 
     LaunchedEffect(Unit) {
         val uri = Uri.Builder().scheme(ContentResolver.SCHEME_ANDROID_RESOURCE).path(audioFileId.toString()).build()
@@ -52,21 +53,27 @@ fun MetronomeScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        while (true){
-            delay(Duration.ofMillis(bmp.value.toLong()))
+    LaunchedEffect(isPlaying.value) {
+        while (isPlaying.value){
             playerState.value?.seekTo(0)
             playerState.value?.play()
+            delay(Duration.ofMillis(bmp.value.toLong()))
         }
     }
 
-    MetronomeScreen(modifier = modifier, uiState = uiState.value.metronomeUIState, player = playerState.value) { slider ->
-        viewModel.updateBPM(slider)
-    }
+    MetronomeScreen(
+        modifier = modifier,
+        uiState = uiState.value.metronomeUIState,
+        player = playerState.value,
+        onPlay = viewModel::playPlayer,
+        onPause = viewModel::pausePlayer,
+        onValueChange = { slider ->
+            viewModel.updateBPM(slider)
+        })
 }
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: MetronomeUIState, player: ExoPlayer?, onValueChange: (Float) -> Unit) {
+fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: MetronomeUIState, player: ExoPlayer?, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
     Column(modifier = modifier) {
         Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = uiState.beatsPerMinute, fontSize = 24.sp)
         Slider(modifier = Modifier
@@ -79,12 +86,16 @@ fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: Metron
                 onValueChange(it.roundToInt().toFloat())
             }
         )
-        PlayerControls(player)
+        PlayerControls(
+            player,
+            onPlay = onPlay,
+            onPause = onPause
+        )
     }
 }
 
 @Composable
-fun PlayerControls(player: ExoPlayer?) {
+fun PlayerControls(player: ExoPlayer?, onPlay: () -> Unit, onPause: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,10 +103,10 @@ fun PlayerControls(player: ExoPlayer?) {
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center
     ) {
-        Button(onClick = { player?.playWhenReady = true }) {
+        Button(onClick = onPlay) {
             Text("Play")
         }
-        Button(onClick = { player?.playWhenReady = false }) {
+        Button(onClick = onPause) {
             Text("Pause")
         }
     }
@@ -104,7 +115,8 @@ fun PlayerControls(player: ExoPlayer?) {
 @Preview
 @Composable
 fun MetronomeScreenPreview(){
-    MetronomeScreen(uiState = MetronomeUIState("100 bpm", 100f), player = null) {  }
+    MetronomeScreen(uiState = MetronomeUIState("100 bpm", 100f), player = null,
+        onValueChange = {}, onPlay = {}, onPause = {})
 }
 
 data class MetronomeUIState(val beatsPerMinute: String, val value: Float)

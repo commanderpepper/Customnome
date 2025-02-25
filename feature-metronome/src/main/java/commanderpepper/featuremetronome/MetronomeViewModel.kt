@@ -23,6 +23,9 @@ class MetronomeViewModel: ViewModel() {
     private val _playerState = MutableStateFlow<ExoPlayer?>(null)
     val playerState: StateFlow<ExoPlayer?> = _playerState
 
+    private val _isPlaying = MutableStateFlow<Boolean>(true)
+    val isPlaying = _isPlaying
+
     val bpm = _uiState.map { (60f / it.metronomeUIState.value) * 1000 }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), 89 * 1000f)
 
     private var currentPosition: Long = 0L
@@ -60,6 +63,16 @@ class MetronomeViewModel: ViewModel() {
     fun releasePlayer() {
         _playerState.value?.release()
         _playerState.value = null
+    }
+
+    fun playPlayer(){
+        _playerState.value?.play()
+        _isPlaying.value = true
+    }
+
+    fun pausePlayer(){
+        _playerState.value?.pause()
+        _isPlaying.value = false
     }
 
     private fun handleError(error: PlaybackException) {
