@@ -2,6 +2,8 @@ package commanderpepper.featuremetronome
 
 import android.content.ContentResolver
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +37,7 @@ fun MetronomeScreen(
 
     val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsState()
+    val fileName = viewModel.fileName.collectAsState()
     val playerState = viewModel.playerState.collectAsState()
     val bmp = viewModel.bpm.collectAsState()
     val isPlaying = viewModel.isPlaying.collectAsState()
@@ -67,14 +70,24 @@ fun MetronomeScreen(
         player = playerState.value,
         onPlay = viewModel::playPlayer,
         onPause = viewModel::pausePlayer,
+        onFileSelected = viewModel::setUri,
+        fileName = fileName.value,
         onValueChange = { slider ->
             viewModel.updateBPM(slider)
         })
 }
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), uiState: MetronomeUIState, player: ExoPlayer?, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
+fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), fileName: String, uiState: MetronomeUIState, player: ExoPlayer?, onFileSelected: (Uri) -> Unit, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
     Column(modifier = modifier) {
+
+        val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result ->
+            if(result != null){
+                onFileSelected(result)
+            }
+        }
+        Text(modifier = Modifier.padding(8.dp), text = fileName)
+        Button(modifier = Modifier.padding(8.dp), onClick = { fileLauncher.launch("audio/*") }) { Text("Choose a file") }
         Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = uiState.beatsPerMinute, fontSize = 24.sp)
         Slider(modifier = Modifier
             .fillMaxWidth()
@@ -99,7 +112,7 @@ fun PlayerControls(player: ExoPlayer?, onPlay: () -> Unit, onPause: () -> Unit) 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp),
+            .padding(8.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center
     ) {
@@ -115,8 +128,8 @@ fun PlayerControls(player: ExoPlayer?, onPlay: () -> Unit, onPause: () -> Unit) 
 @Preview
 @Composable
 fun MetronomeScreenPreview(){
-    MetronomeScreen(uiState = MetronomeUIState("100 bpm", 100f), player = null,
-        onValueChange = {}, onPlay = {}, onPause = {})
+    MetronomeScreen(uiState = MetronomeUIState(beatsPerMinute = "100 bpm", value = 100f), fileName = "name", player = null,
+        onValueChange = {}, onPlay = {}, onPause = {}, onFileSelected = {})
 }
 
 data class MetronomeUIState(val beatsPerMinute: String, val value: Float)

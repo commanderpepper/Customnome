@@ -1,8 +1,12 @@
 package commanderpepper.featuremetronome
 
+import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
+import android.database.Cursor
 import android.net.Uri
-import androidx.lifecycle.ViewModel
+import android.provider.OpenableColumns
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -16,8 +20,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class MetronomeViewModel: ViewModel() {
-    private val _uiState = MutableStateFlow(MetronomeScreenUIState(MetronomeUIState("bmp: 89", 89f)))
+
+class MetronomeViewModel(application: Application): AndroidViewModel(application) {
+
+    private val _fileName = MutableStateFlow("metronome_sound.wav")
+    val fileName = _fileName.asStateFlow()
+
+    private val _uiState = MutableStateFlow(MetronomeScreenUIState(metronomeUIState = MetronomeUIState(beatsPerMinute = "bmp: 89", value = 89f)))
     val uiState = _uiState.asStateFlow()
 
     private val _playerState = MutableStateFlow<ExoPlayer?>(null)
@@ -31,7 +40,7 @@ class MetronomeViewModel: ViewModel() {
     private var currentPosition: Long = 0L
 
     fun updateBPM(bpm: Float){
-        _uiState.value = MetronomeScreenUIState(MetronomeUIState(beatsPerMinute = "bpm: ${bpm.toInt()}", value = bpm))
+        _uiState.value = MetronomeScreenUIState(metronomeUIState = MetronomeUIState(beatsPerMinute = "bpm: ${bpm.toInt()}", value = bpm))
     }
 
     fun initializePlayer(context: Context, uri: Uri) {
@@ -52,6 +61,13 @@ class MetronomeViewModel: ViewModel() {
                 _playerState.value = exoPlayer
             }
         }
+    }
+
+    fun setUri(uri: Uri){
+        val mediaItem = MediaItem.fromUri(uri)
+        val fileName = getFileName(uri)
+        _fileName.value = fileName
+        _playerState.value?.setMediaItem(mediaItem)
     }
 
     fun savePlayerState() {
@@ -92,6 +108,29 @@ class MetronomeViewModel: ViewModel() {
                 println("Other error: ${error.message}")
             }
         }
+    }
+
+    @SuppressLint("Range")
+    fun getFileName(uri: Uri): String {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor: Cursor? = getApplication<Application>().contentResolver.query(uri, null, null, null, null)
+            cursor.use { openCursor ->
+                if (openCursor != null && openCursor.moveToFirst()) {
+                    if(openCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME) >= 0){
+                        result = openCursor.getString(openCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                    }
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result!!.lastIndexOf('/')
+            if (cut != -1) {
+                result = result!!.substring(cut + 1)
+            }
+        }
+        return result ?: ""
     }
 
 }
