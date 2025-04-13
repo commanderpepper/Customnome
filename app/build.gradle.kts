@@ -52,6 +52,12 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.media3.exoplayer)
 
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.compose.navigation)
+
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)

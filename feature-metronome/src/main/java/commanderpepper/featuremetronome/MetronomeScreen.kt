@@ -22,16 +22,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.time.delay
+import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
 import kotlin.math.roundToInt
 
 @Composable
 fun MetronomeScreen(
-    modifier: Modifier = Modifier.fillMaxSize(),
-    viewModel: MetronomeViewModel = viewModel(),
+    modifier: Modifier = Modifier,
+    viewModel: MetronomeViewModel = koinViewModel<MetronomeViewModel>(),
     audioFileId: Int
 ){
 
