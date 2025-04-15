@@ -12,6 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import commanderpepper.customnome.data.local.URIRetriever
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
-class MetronomeViewModel(application: Application): AndroidViewModel(application) {
+class MetronomeViewModel(application: Application, private val uriRetriever: URIRetriever): AndroidViewModel(application) {
 
     private val _fileName = MutableStateFlow("metronome_sound.wav")
     val fileName = _fileName.asStateFlow()
@@ -64,10 +65,10 @@ class MetronomeViewModel(application: Application): AndroidViewModel(application
     }
 
     fun setUri(uri: Uri){
-        val mediaItem = MediaItem.fromUri(uri)
-        val fileName = getFileName(uri)
-        _fileName.value = fileName
-        _playerState.value?.setMediaItem(mediaItem)
+        uriRetriever.storeURI(uri)
+        val uriWithName = uriRetriever.getURI()
+        _fileName.value = uriWithName.name
+        _playerState.value?.setMediaItem(MediaItem.fromUri(uriWithName.uri))
     }
 
     fun savePlayerState() {
