@@ -4,11 +4,15 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -18,11 +22,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.time.delay
 import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
@@ -63,7 +69,7 @@ fun MetronomeScreen(
     MetronomeScreen(
         modifier = modifier,
         uiState = uiState.value.metronomeUIState,
-        player = playerState.value,
+        isPlaying = isPlaying.value,
         onPlay = viewModel::playPlayer,
         onPause = viewModel::pausePlayer,
         onFileSelected = viewModel::setUri,
@@ -74,7 +80,7 @@ fun MetronomeScreen(
 }
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: MetronomeUIState, player: ExoPlayer?, onFileSelected: (Uri) -> Unit, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
+fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: MetronomeUIState, isPlaying: Boolean, onFileSelected: (Uri) -> Unit, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
     Column(modifier = modifier.fillMaxSize()) {
         val localContext = LocalContext.current
         val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
@@ -98,7 +104,7 @@ fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: Me
             }
         )
         PlayerControls(
-            player,
+            isPlaying = isPlaying,
             onPlay = onPlay,
             onPause = onPause
         )
@@ -106,27 +112,27 @@ fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: Me
 }
 
 @Composable
-fun PlayerControls(player: ExoPlayer?, onPlay: () -> Unit, onPause: () -> Unit) {
+fun PlayerControls(isPlaying: Boolean, onPlay: () -> Unit, onPause: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        horizontalAlignment = Alignment.Start,
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Button(onClick = onPlay) {
-            Text("Play")
-        }
-        Button(onClick = onPause) {
-            Text("Pause")
+        Button(modifier = Modifier.size(64.dp).clip(CircleShape), onClick = if(isPlaying) onPause else onPlay) {
+            AnimatedVisibility(isPlaying) {
+                Image(contentScale = ContentScale.FillBounds, painter = painterResource(R.drawable.baseline_pause_24), contentDescription = "Pause")
+            }
+            Image(contentScale = ContentScale.FillBounds, painter = painterResource(R.drawable.baseline_play_arrow_24), contentDescription = "Play")
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun MetronomeScreenPreview(){
-    MetronomeScreen(uiState = MetronomeUIState(beatsPerMinute = "100 bpm", value = 100f), fileName = "name", player = null,
+    MetronomeScreen(uiState = MetronomeUIState(beatsPerMinute = "100 bpm", value = 100f), fileName = "name", isPlaying = true,
         onValueChange = {}, onPlay = {}, onPause = {}, onFileSelected = {})
 }
 
