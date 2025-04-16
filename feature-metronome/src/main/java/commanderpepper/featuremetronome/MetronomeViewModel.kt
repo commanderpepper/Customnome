@@ -9,6 +9,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import commanderpepper.customnome.data.local.URIRetriever
+import commanderpepper.customnome.data.local.URIWithName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -53,11 +54,10 @@ class MetronomeViewModel(private val uriRetriever: URIRetriever): ViewModel() {
                         }
                     })
                 }
-                _playerState.value = exoPlayer
 
+                _playerState.value = exoPlayer
                 val lastSavedUri = uriRetriever.getURI()
-                _fileName.value = lastSavedUri.name
-                _playerState.value?.setMediaItem(MediaItem.fromUri(lastSavedUri.uri))
+                playUri(lastSavedUri)
             }
         }
     }
@@ -65,8 +65,19 @@ class MetronomeViewModel(private val uriRetriever: URIRetriever): ViewModel() {
     fun setUri(uri: Uri){
         uriRetriever.storeURI(uri)
         val uriWithName = uriRetriever.getURI()
-        _fileName.value = uriWithName.name
-        _playerState.value?.setMediaItem(MediaItem.fromUri(uriWithName.uri))
+        playUri(uriWithName)
+    }
+
+    private fun playUri(uri: URIWithName){
+        try {
+            _fileName.value = uri.name
+            _playerState.value?.setMediaItem(MediaItem.fromUri(uri.uri))
+        }
+        catch (e: Exception){
+            val defaultUri = uriRetriever.getDefaultURI()
+            _fileName.value = defaultUri.name
+            _playerState.value?.setMediaItem(MediaItem.fromUri(defaultUri.uri))
+        }
     }
 
     fun savePlayerState() {

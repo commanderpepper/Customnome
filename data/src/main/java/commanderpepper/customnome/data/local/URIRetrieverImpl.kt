@@ -33,7 +33,7 @@ class URIRetrieverImpl(private val application: Application) : URIRetriever {
         sharedPreferences?.edit()?.putString("sound", uri.toString())?.apply()
     }
 
-    private fun getDefaultURI(): URIWithName {
+    override fun getDefaultURI(): URIWithName {
         val uri = Uri.Builder().scheme(ContentResolver.SCHEME_ANDROID_RESOURCE).path(R.raw.metronome_sound.toString()).build()
         return URIWithName(uri, "metronome_sound.wav")
     }

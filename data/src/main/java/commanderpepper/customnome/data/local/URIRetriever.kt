@@ -6,6 +6,8 @@ interface URIRetriever {
     fun getURI(): URIWithName
 
     fun storeURI(uri: Uri)
+
+    fun getDefaultURI(): URIWithName
 }
 
 data class URIWithName(val uri: Uri, val name: String)
