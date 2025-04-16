@@ -1,9 +1,8 @@
 package commanderpepper.featuremetronome
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -19,7 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
-class MetronomeViewModel(application: Application, private val uriRetriever: URIRetriever): AndroidViewModel(application) {
+class MetronomeViewModel(private val uriRetriever: URIRetriever): ViewModel() {
 
     private val _fileName = MutableStateFlow("")
     val fileName = _fileName.asStateFlow()
