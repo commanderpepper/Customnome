@@ -11,7 +11,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
       setContent {
             CustomnomeTheme {
-                MetronomeScreen(audioFileId = R.raw.metronome_sound)
+                MetronomeScreen()
             }
         }
     }

@@ -1,6 +1,6 @@
 package commanderpepper.featuremetronome
 
-import android.content.ContentResolver
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,8 +31,7 @@ import kotlin.math.roundToInt
 @Composable
 fun MetronomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: MetronomeViewModel = koinViewModel<MetronomeViewModel>(),
-    audioFileId: Int
+    viewModel: MetronomeViewModel = koinViewModel<MetronomeViewModel>()
 ){
 
     val context = LocalContext.current
@@ -43,10 +42,7 @@ fun MetronomeScreen(
     val isPlaying = viewModel.isPlaying.collectAsState()
 
     LaunchedEffect(Unit) {
-        val uri = Uri.Builder().scheme(ContentResolver.SCHEME_ANDROID_RESOURCE).path(audioFileId.toString()).build()
-        if(uri != null){
-            viewModel.initializePlayer(context, uri)
-        }
+        viewModel.initializePlayer(context)
     }
 
     DisposableEffect(Unit) {
@@ -78,16 +74,18 @@ fun MetronomeScreen(
 }
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier.fillMaxSize(), fileName: String, uiState: MetronomeUIState, player: ExoPlayer?, onFileSelected: (Uri) -> Unit, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
-    Column(modifier = modifier) {
-
-        val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result ->
+fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: MetronomeUIState, player: ExoPlayer?, onFileSelected: (Uri) -> Unit, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
+    Column(modifier = modifier.fillMaxSize()) {
+        val localContext = LocalContext.current
+        val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
             if(result != null){
+                localContext.contentResolver.takePersistableUriPermission(result, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 onFileSelected(result)
             }
         }
+
         Text(modifier = Modifier.padding(8.dp), text = fileName)
-        Button(modifier = Modifier.padding(8.dp), onClick = { fileLauncher.launch("audio/*") }) { Text("Choose a file") }
+        Button(modifier = Modifier.padding(8.dp), onClick = { fileLauncher.launch(arrayOf("audio/*")) }) { Text("Choose a file") }
         Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = uiState.beatsPerMinute, fontSize = 24.sp)
         Slider(modifier = Modifier
             .fillMaxWidth()

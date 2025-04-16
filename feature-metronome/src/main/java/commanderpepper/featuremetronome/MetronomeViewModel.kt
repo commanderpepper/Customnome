@@ -1,11 +1,8 @@
 package commanderpepper.featuremetronome
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -24,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class MetronomeViewModel(application: Application, private val uriRetriever: URIRetriever): AndroidViewModel(application) {
 
-    private val _fileName = MutableStateFlow("metronome_sound.wav")
+    private val _fileName = MutableStateFlow("")
     val fileName = _fileName.asStateFlow()
 
     private val _uiState = MutableStateFlow(MetronomeScreenUIState(metronomeUIState = MetronomeUIState(beatsPerMinute = "bmp: 89", value = 89f)))
@@ -44,12 +41,10 @@ class MetronomeViewModel(application: Application, private val uriRetriever: URI
         _uiState.value = MetronomeScreenUIState(metronomeUIState = MetronomeUIState(beatsPerMinute = "bpm: ${bpm.toInt()}", value = bpm))
     }
 
-    fun initializePlayer(context: Context, uri: Uri) {
+    fun initializePlayer(context: Context) {
         if (_playerState.value == null) {
             viewModelScope.launch {
                 val exoPlayer = ExoPlayer.Builder(context).build().also {
-                    val mediaItem = MediaItem.fromUri(uri)
-                    it.setMediaItem(mediaItem)
                     it.prepare()
                     it.playWhenReady = false
                     it.seekTo(currentPosition)
@@ -60,6 +55,10 @@ class MetronomeViewModel(application: Application, private val uriRetriever: URI
                     })
                 }
                 _playerState.value = exoPlayer
+
+                val lastSavedUri = uriRetriever.getURI()
+                _fileName.value = lastSavedUri.name
+                _playerState.value?.setMediaItem(MediaItem.fromUri(lastSavedUri.uri))
             }
         }
     }
@@ -110,30 +109,6 @@ class MetronomeViewModel(application: Application, private val uriRetriever: URI
             }
         }
     }
-
-    @SuppressLint("Range")
-    fun getFileName(uri: Uri): String {
-        var result: String? = null
-        if (uri.scheme == "content") {
-            val cursor: Cursor? = getApplication<Application>().contentResolver.query(uri, null, null, null, null)
-            cursor.use { openCursor ->
-                if (openCursor != null && openCursor.moveToFirst()) {
-                    if(openCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME) >= 0){
-                        result = openCursor.getString(openCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                    }
-                }
-            }
-        }
-        if (result == null) {
-            result = uri.path
-            val cut = result!!.lastIndexOf('/')
-            if (cut != -1) {
-                result = result!!.substring(cut + 1)
-            }
-        }
-        return result ?: ""
-    }
-
 }
 
 data class MetronomeScreenUIState(val metronomeUIState: MetronomeUIState)
