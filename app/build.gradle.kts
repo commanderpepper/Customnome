@@ -61,6 +61,7 @@ android {
 
 dependencies {
     implementation(project(":feature-metronome"))
+    implementation(project(":feature-info"))
     implementation(project(":data"))
 
     implementation(libs.androidx.core.ktx)
