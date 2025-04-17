@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,10 @@ plugins {
 android {
     namespace = "commanderpepper.customnome"
     compileSdk = 35
+
+    val keystoreFile = project.rootProject.file("api.properties")
+    val properties = Properties()
+    properties.load(keystoreFile.inputStream())
 
     defaultConfig {
         applicationId = "commanderpepper.customnome"
@@ -18,9 +24,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release"){
+            keyAlias = properties.getProperty("ALIAS_NAME")
+            keyPassword = properties.getProperty("ALIAS_PW")
+            storeFile = file("./android.jks")
+            storePassword = properties.getProperty("JKS_PW")
+        }
+    }
+
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-DEBUG"
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
