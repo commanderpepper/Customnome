@@ -19,13 +19,13 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun InfoScreen(modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxSize()) {
-        Text(modifier = Modifier.padding(8.dp), text = "Customnome", fontSize = 20.sp)
+        Text(modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp), text = "Customnome", fontSize = 20.sp)
         Text(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
             text = "Customnome is an app where you can choose the BPM and the sound for a metronome.",
             fontSize = 14.sp
         )
-        Text(modifier = Modifier.padding(8.dp), text = buildAnnotatedString {
+        Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = buildAnnotatedString {
             withLink(
                 LinkAnnotation.Url(
                     "https://github.com/commanderpepper/Customnome",
@@ -37,12 +37,12 @@ fun InfoScreen(modifier: Modifier = Modifier) {
             }
         }, fontSize = 14.sp)
         Column {
-            Text(modifier = Modifier.padding(8.dp), text = "Libraries Used", fontSize = 14.sp)
-            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp), text = "Kotlin", fontSize = 12.sp)
-            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp), text = "Compose", fontSize = 12.sp)
-            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp), text = "Exoplayer", fontSize = 12.sp)
-            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp), text = "Koin", fontSize = 12.sp)
-            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp), text = "Inkscape", fontSize = 12.sp)
+            Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = "Libraries Used", fontSize = 14.sp)
+            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 20.dp), text = "Kotlin", fontSize = 12.sp)
+            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 20.dp), text = "Compose", fontSize = 12.sp)
+            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 20.dp), text = "Exoplayer", fontSize = 12.sp)
+            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 20.dp), text = "Koin", fontSize = 12.sp)
+            Text(modifier = Modifier.padding(vertical = 2.dp, horizontal = 20.dp), text = "Inkscape", fontSize = 12.sp)
         }
     }
 }

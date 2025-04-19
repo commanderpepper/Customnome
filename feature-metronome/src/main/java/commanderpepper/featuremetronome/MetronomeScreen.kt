@@ -90,8 +90,8 @@ fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: Me
             }
         }
 
-        Text(modifier = Modifier.padding(8.dp), text = fileName)
-        Button(modifier = Modifier.padding(8.dp), onClick = { fileLauncher.launch(arrayOf("audio/*")) }) { Text("Choose a file") }
+        Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = fileName)
+        Button(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), onClick = { fileLauncher.launch(arrayOf("audio/*")) }) { Text("Choose a file") }
         Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = uiState.beatsPerMinute, fontSize = 24.sp)
         Slider(modifier = Modifier
             .fillMaxWidth()
@@ -116,7 +116,7 @@ fun PlayerControls(isPlaying: Boolean, onPlay: () -> Unit, onPause: () -> Unit) 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(vertical = 8.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
