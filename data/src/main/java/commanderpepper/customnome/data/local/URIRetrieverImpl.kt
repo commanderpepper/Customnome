@@ -59,9 +59,9 @@ class URIRetrieverImpl(private val application: Application) : URIRetriever {
             result = uri.path
             val cut = result!!.lastIndexOf('/')
             if (cut != -1) {
-                result = result!!.substring(cut + 1)
+                result = result.substring(cut + 1)
             }
         }
-        return result ?: ""
+        return result
     }
 }
