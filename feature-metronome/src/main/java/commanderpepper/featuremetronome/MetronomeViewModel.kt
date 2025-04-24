@@ -68,6 +68,12 @@ class MetronomeViewModel(private val uriRetriever: URIRetriever): ViewModel() {
         playUri(uriWithName)
     }
 
+    fun setToDefault(){
+        val defaultUri = uriRetriever.getDefaultURI()
+        uriRetriever.wipeUri()
+        playUri(defaultUri)
+    }
+
     private fun playUri(uri: URIWithName){
         try {
             _fileName.value = uri.name

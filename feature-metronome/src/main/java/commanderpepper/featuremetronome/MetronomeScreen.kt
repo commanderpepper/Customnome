@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,7 +39,7 @@ import kotlin.math.roundToInt
 fun MetronomeScreen(
     modifier: Modifier = Modifier,
     viewModel: MetronomeViewModel = koinViewModel<MetronomeViewModel>()
-){
+) {
 
     val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsState()
@@ -59,7 +60,7 @@ fun MetronomeScreen(
     }
 
     LaunchedEffect(isPlaying.value) {
-        while (isPlaying.value){
+        while (isPlaying.value) {
             playerState.value?.seekTo(0)
             playerState.value?.play()
             delay(Duration.ofMillis(bmp.value.toLong()))
@@ -73,6 +74,7 @@ fun MetronomeScreen(
         onPlay = viewModel::playPlayer,
         onPause = viewModel::pausePlayer,
         onFileSelected = viewModel::setUri,
+        onDefault = viewModel::setToDefault,
         fileName = fileName.value,
         onValueChange = { slider ->
             viewModel.updateBPM(slider)
@@ -80,25 +82,51 @@ fun MetronomeScreen(
 }
 
 @Composable
-fun MetronomeScreen(modifier: Modifier = Modifier, fileName: String, uiState: MetronomeUIState, isPlaying: Boolean, onFileSelected: (Uri) -> Unit, onValueChange: (Float) -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
+fun MetronomeScreen(
+    modifier: Modifier = Modifier,
+    fileName: String,
+    uiState: MetronomeUIState,
+    isPlaying: Boolean,
+    onFileSelected: (Uri) -> Unit,
+    onValueChange: (Float) -> Unit,
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
+    onDefault: () -> Unit
+) {
     Column(modifier = modifier.fillMaxSize()) {
         val localContext = LocalContext.current
-        val fileLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
-            if(result != null){
-                localContext.contentResolver.takePersistableUriPermission(result, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                onFileSelected(result)
+        val fileLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+                if (result != null) {
+                    localContext.contentResolver.takePersistableUriPermission(
+                        result,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                    onFileSelected(result)
+                }
             }
-        }
 
         Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = fileName)
-        Button(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), onClick = { fileLauncher.launch(arrayOf("audio/*")) }) { Text("Choose a file") }
-        Text(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp), text = uiState.beatsPerMinute, fontSize = 24.sp)
-        Slider(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp),
+        Row {
+            Button(
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                onClick = { fileLauncher.launch(arrayOf("audio/*")) }) { Text("Choose a file") }
+            Button(
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
+                onClick = { onDefault()}) { Text("Use default sound") }
+        }
+        Text(
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+            text = uiState.beatsPerMinute,
+            fontSize = 24.sp
+        )
+        Slider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp),
             value = uiState.value,
             steps = 178,
-            valueRange = 40f .. 218f,
+            valueRange = 40f..218f,
             onValueChange = {
                 onValueChange(it.roundToInt().toFloat())
             }
@@ -120,20 +148,40 @@ fun PlayerControls(isPlaying: Boolean, onPlay: () -> Unit, onPause: () -> Unit) 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Button(modifier = Modifier.size(64.dp).clip(CircleShape), onClick = if(isPlaying) onPause else onPlay) {
+        Button(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape),
+            onClick = if (isPlaying) onPause else onPlay
+        ) {
             AnimatedVisibility(isPlaying) {
-                Image(contentScale = ContentScale.FillBounds, painter = painterResource(R.drawable.baseline_pause_24), contentDescription = "Pause")
+                Image(
+                    contentScale = ContentScale.FillBounds,
+                    painter = painterResource(R.drawable.baseline_pause_24),
+                    contentDescription = "Pause"
+                )
             }
-            Image(contentScale = ContentScale.FillBounds, painter = painterResource(R.drawable.baseline_play_arrow_24), contentDescription = "Play")
+            Image(
+                contentScale = ContentScale.FillBounds,
+                painter = painterResource(R.drawable.baseline_play_arrow_24),
+                contentDescription = "Play"
+            )
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun MetronomeScreenPreview(){
-    MetronomeScreen(uiState = MetronomeUIState(beatsPerMinute = "100 bpm", value = 100f), fileName = "name", isPlaying = true,
-        onValueChange = {}, onPlay = {}, onPause = {}, onFileSelected = {})
+fun MetronomeScreenPreview() {
+    MetronomeScreen(
+        uiState = MetronomeUIState(beatsPerMinute = "100 bpm", value = 100f),
+        fileName = "name",
+        isPlaying = true,
+        onValueChange = {},
+        onPlay = {},
+        onPause = {},
+        onDefault = {},
+        onFileSelected = {})
 }
 
 data class MetronomeUIState(val beatsPerMinute: String, val value: Float)

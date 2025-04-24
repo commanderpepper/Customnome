@@ -7,6 +7,8 @@ interface URIRetriever {
 
     fun storeURI(uri: Uri)
 
+    fun wipeUri()
+
     fun getDefaultURI(): URIWithName
 }
 
