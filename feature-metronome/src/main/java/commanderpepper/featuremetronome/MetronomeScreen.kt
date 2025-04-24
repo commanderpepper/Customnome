@@ -30,6 +30,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.time.delay
 import org.koin.compose.viewmodel.koinViewModel
 import java.time.Duration
@@ -48,14 +51,29 @@ fun MetronomeScreen(
     val bmp = viewModel.bpm.collectAsState()
     val isPlaying = viewModel.isPlaying.collectAsState()
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     LaunchedEffect(Unit) {
         viewModel.initializePlayer(context)
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if(event == Lifecycle.Event.ON_RESUME){
+                viewModel.playPlayer()
+            }
+            if(event == Lifecycle.Event.ON_PAUSE){
+                viewModel.pausePlayer()
+            }
+            if(event == Lifecycle.Event.ON_DESTROY){
+                viewModel.releasePlayer()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
         onDispose {
-            viewModel.savePlayerState()
-            viewModel.releasePlayer()
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
