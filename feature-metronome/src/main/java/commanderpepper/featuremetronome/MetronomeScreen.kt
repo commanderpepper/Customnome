@@ -21,9 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -93,6 +93,8 @@ fun MetronomeScreen(
         onPause = viewModel::pausePlayer,
         onFileSelected = viewModel::setUri,
         onDefault = viewModel::setToDefault,
+        onMinus = viewModel::decreaseBPM,
+        onPlus = viewModel::increaseBPM,
         fileName = fileName.value,
         onValueChange = { slider ->
             viewModel.updateBPM(slider)
@@ -109,7 +111,9 @@ fun MetronomeScreen(
     onValueChange: (Float) -> Unit,
     onPlay: () -> Unit,
     onPause: () -> Unit,
-    onDefault: () -> Unit
+    onDefault: () -> Unit,
+    onPlus: () -> Unit,
+    onMinus: () -> Unit,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         val localContext = LocalContext.current
@@ -152,20 +156,29 @@ fun MetronomeScreen(
         PlayerControls(
             isPlaying = isPlaying,
             onPlay = onPlay,
-            onPause = onPause
+            onPause = onPause,
+            onPlus = onPlus,
+            onMinus = onMinus
         )
     }
 }
 
 @Composable
-fun PlayerControls(isPlaying: Boolean, onPlay: () -> Unit, onPause: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
+fun PlayerControls(isPlaying: Boolean, onMinus: () -> Unit, onPlus: () -> Unit, onPlay: () -> Unit, onPause: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+        horizontalArrangement = Arrangement.Center
+    ){
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .size(64.dp)
+                .clip(CircleShape),
+            onClick = onMinus
+        ) {
+            Text("-1", color = Color.Black)
+        }
         Button(
             modifier = Modifier
                 .size(64.dp)
@@ -185,6 +198,15 @@ fun PlayerControls(isPlaying: Boolean, onPlay: () -> Unit, onPause: () -> Unit) 
                 contentDescription = "Play"
             )
         }
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .size(64.dp)
+                .clip(CircleShape),
+            onClick = onPlus
+        ) {
+            Text("+1", color = Color.Black)
+        }
     }
 }
 
@@ -199,6 +221,8 @@ fun MetronomeScreenPreview() {
         onPlay = {},
         onPause = {},
         onDefault = {},
+        onPlus = {},
+        onMinus = {},
         onFileSelected = {})
 }
 

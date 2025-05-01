@@ -24,7 +24,7 @@ class MetronomeViewModel(private val uriRetriever: URIRetriever): ViewModel() {
     private val _fileName = MutableStateFlow("")
     val fileName = _fileName.asStateFlow()
 
-    private val _uiState = MutableStateFlow(MetronomeScreenUIState(metronomeUIState = MetronomeUIState(beatsPerMinute = "bmp: 89", value = 89f)))
+    private val _uiState = MutableStateFlow(MetronomeScreenUIState(metronomeUIState = MetronomeUIState(beatsPerMinute = "bpm: 89", value = 89f)))
     val uiState = _uiState.asStateFlow()
 
     private val _playerState = MutableStateFlow<ExoPlayer?>(null)
@@ -105,6 +105,16 @@ class MetronomeViewModel(private val uriRetriever: URIRetriever): ViewModel() {
     fun pausePlayer(){
         _playerState.value?.pause()
         _isPlaying.value = false
+    }
+
+    fun increaseBPM(){
+        val increasedBPM = _uiState.value.metronomeUIState.value + 1
+        updateBPM(increasedBPM)
+    }
+
+    fun decreaseBPM(){
+        val decreasedBPM = _uiState.value.metronomeUIState.value - 1
+        updateBPM(decreasedBPM)
     }
 
     private fun handleError(error: PlaybackException) {
